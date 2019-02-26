@@ -1,16 +1,7 @@
 package snake;
 
 import java.awt.Dimension;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class SchlangenLogik {
 	
@@ -89,25 +80,7 @@ public class SchlangenLogik {
 	}
 	
 	public boolean eatDaApple(ArrayList<SnakeObjekt> snake, Food food) {
-//		System.out.println("snake: "+ snake.get(0).getPosition());
-//		System.out.println("Food:  " + food.getPosition());
 		if((int)snake.get(0).getPosition().getHeight() == (int)food.getPosition().getHeight() && (int)snake.get(0).getPosition().getWidth() == (int)food.getPosition().getWidth()) {
-			try {
-				File soundFile = new File("D:\\develop\\java\\Snake\\Resources\\Quack.wav");
-				AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFile);
-				Clip clip = AudioSystem.getClip();
-				clip.open(audioIn);
-				clip.start();
-				audioIn.close();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (UnsupportedAudioFileException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (LineUnavailableException e) {
-				e.printStackTrace();
-			}
 			return true;
 		}
 		return false;

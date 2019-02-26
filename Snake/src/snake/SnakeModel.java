@@ -8,17 +8,9 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -37,7 +29,6 @@ public class SnakeModel extends JPanel implements KeyListener{
 	
 	private JFrame gameOver;
 	private Frame[] frame;
-	private String title;
 	private int score;
 	private boolean isPause;
 	private JPanel playGround;
@@ -47,21 +38,27 @@ public class SnakeModel extends JPanel implements KeyListener{
 	private String task; 
 	private int sleepTimer; 
 	private int level;
-	private Clip gameSound;
 	private int[] levelTreshHold = {2,5,10,20,35,55,80,110,160,210,265,331};
 	private JFrame parentFrame;
+	private Music gameSound;
 	
 	public SnakeModel(SnakeView parent) {
 		this.parentFrame = parent;
+		parentFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		initGame(parent);
 	}
 	
+	/*
+	 * @TODO: 
+	 * GameSound aus Model rausnehmen und KOMPLETT in Music unterbringen
+	 * Model ruft nur noch den jeweiligen Soundclip in music auf! 
+	 */
+	
 	private void resetGame() {
+		gameSound.stopMusic();
+		this.gameSound = new Music();
 		this.level = 0;
 		this.score = 0;
-		gameSound.flush();
-		gameSound.stop();
-		gameSound.close();
 		parentFrame.setTitle("Jetzt wird SnaPed1");
 		startGame();
 	}
@@ -91,11 +88,12 @@ public class SnakeModel extends JPanel implements KeyListener{
 		JButton yesBtn = new JButton("Yes");
 		yesBtn.addActionListener((e)->{
 			gameOver.setVisible(false);
-			gameSound.close();
+//			gameSound.close();
 			resetGame();
 		});
 		JButton noBtn = new JButton("No");
 		noBtn.addActionListener((e)->{
+			parentFrame.dispose();
 			System.exit(0);
 		});
 		gl.setAutoCreateContainerGaps(true);
@@ -130,10 +128,10 @@ public class SnakeModel extends JPanel implements KeyListener{
 	@SuppressWarnings("static-access")
 	private void initGame(SnakeView parent) {
 		configurePlayGround();
+		gameSound = new Music();
 		sleepTimer = 150;
 		isPause = false;
 		score = 0;
-		title = parent.getTitle();
 		frame = parent.getFrames();
 		isFood = false;
 		setGameOver();
@@ -205,8 +203,9 @@ public class SnakeModel extends JPanel implements KeyListener{
 	 */
 	private void  setLevel() throws InterruptedException {
 			if(levelTreshHold[level] == score-1) {
-				playLevelUp();
-				changeSoundTrack();
+				gameSound.playLvlUp();
+				level++;
+				gameSound.backgroundSound(level);
 				sleepTimer -=10;
 		}
 	}
@@ -230,40 +229,6 @@ public class SnakeModel extends JPanel implements KeyListener{
 		}
 		return false;
 	}
-	/*
-	 * Spielt levelUpSound	
-	 */
-	private void playLevelUp() {
-		level++;
-		File soundFile = new File("D:\\\\develop\\\\java\\\\snake\\\\synthLoop\\\\levelUp.wav");
-		AudioInputStream audioIn = null;
-		try {
-			audioIn = AudioSystem.getAudioInputStream(soundFile);
-		} catch (UnsupportedAudioFileException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Clip clip = null;
-		try {
-			clip = AudioSystem.getClip();
-		} catch (LineUnavailableException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			clip.open(audioIn);
-		} catch (LineUnavailableException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			audioIn.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		clip.start();
-	}
 	
 	/*
 	 * Versetzt das Spiel in "Pause"
@@ -279,13 +244,6 @@ public class SnakeModel extends JPanel implements KeyListener{
 	/*
 	 * Hält die verschiedenen Soundtracks für die Geschwindigkeit 
 	 */
-	private void changeSoundTrack() {
-		if(level == 0 ||level == 2 || level == 5|| level == 8 || level == 10) {
-			gameSound.stop();
-			gameSound.close();
-			musikStart();
-		}
-	}
 	@Override
 	public void keyTyped(KeyEvent e) {
 	}
@@ -360,6 +318,7 @@ public class SnakeModel extends JPanel implements KeyListener{
 	 * Gibt den Variablen startwerte 	
 	 */
 	public void startGame() {
+		gameSound.backgroundSound(level);
 		playGround.setVisible(true);
 		score = 0;
 		level = 0;
@@ -370,18 +329,12 @@ public class SnakeModel extends JPanel implements KeyListener{
 		snakeList.add(new SnakeObjekt(new Dimension(500+50, 500+50),(ImageIcon) getImageUrl("pickleRick.gif")));
 		task = "up";
 		isFood = false;
-		musikStart();
+//		musikStart();
 		repaint();
 	}
 	/*
 	 * Ist für die anfangsMusik zuständig
 	 */
-	private void musikStart() {
-		Music m = new Music();
-		gameSound = m.getsoundTrack(level);
-		gameSound.start();
-		gameSound.loop(Clip.LOOP_CONTINUOUSLY);
-	}
 	/*
 	 * Gibt die Positionslisten an Logik weiter -> erhält neu berechnete Werte zurück
 	 */
@@ -421,6 +374,7 @@ public class SnakeModel extends JPanel implements KeyListener{
 		SchlangenLogik bigBrain = new SchlangenLogik();
 		//gibt die koordinaten der schlange und vom food an die logik weiter 
 		if(bigBrain.eatDaApple(snake, food)) {
+			gameSound.playFoodEaten();
 			return false;
 		}
 		return true;

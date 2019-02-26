@@ -3,8 +3,6 @@ package snake;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -36,6 +34,7 @@ public class SnakeView extends JFrame{
 //		setLocation(getMiddleXOfScreens(), y);
 		setTitle("Main Menu");
 		setSize(145, 245);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//StartBtn startet das Spiel
 		JButton startBtn = new JButton("Start Game");
 		startBtn.setMinimumSize(buttonDim);
@@ -48,7 +47,7 @@ public class SnakeView extends JFrame{
 			gameFrame.add(playGround);
 			gameFrame.setSize(1500, 1025);
 			gameFrame.setVisible(true);
-			playGround.startGame();
+			gameFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		});
 		//Öffnet die Optionen
 //		JButton OptionBtn = new JButton("Options");
