@@ -8,12 +8,9 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.GroupLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -27,13 +24,16 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class SnakeModel extends JPanel implements KeyListener{
 	
+	
+	private JFrame optionFrame;
+	private SnakeView view;
+	private Snake snake = new Snake();
 	private JFrame gameOver;
 	private Frame[] frame;
 	private int score;
 	private boolean isPause;
 	private JPanel playGround;
 	private Food food;
-	private ArrayList<SnakeObjekt> snakeList;
 	boolean isFood; 
 	private String task; 
 	private int sleepTimer; 
@@ -41,8 +41,15 @@ public class SnakeModel extends JPanel implements KeyListener{
 	private int[] levelTreshHold = {2,5,10,20,35,55,80,110,160,210,265,331};
 	private JFrame parentFrame;
 	private Music gameSound;
+	private JFrame tutorialFrame;
+	
 	
 	public SnakeModel(SnakeView parent) {
+		OptionMenu om = new OptionMenu();
+		optionFrame = om.getOptionMenu();
+		this.view = parent;
+		TutorialWindow tuto = new TutorialWindow();
+		tutorialFrame = tuto.getTutorial();
 		this.parentFrame = parent;
 		parentFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		initGame(parent);
@@ -50,16 +57,15 @@ public class SnakeModel extends JPanel implements KeyListener{
 	
 	/*
 	 * @TODO: 
-	 * GameSound aus Model rausnehmen und KOMPLETT in Music unterbringen
-	 * Model ruft nur noch den jeweiligen Soundclip in music auf! 
+	 * Alle Bilder in eigene Klasse unterbringen 
 	 */
 	
 	private void resetGame() {
+		this.snake = new Snake();
 		gameSound.stopMusic();
 		this.gameSound = new Music();
 		this.level = 0;
 		this.score = 0;
-		parentFrame.setTitle("Jetzt wird SnaPed1");
 		startGame();
 	}
 	
@@ -119,7 +125,7 @@ public class SnakeModel extends JPanel implements KeyListener{
 	
 	private void configurePlayGround() {
 		playGround = new JPanel();
-		playGround.setSize(1500, 1025);
+		playGround.setSize(1500,1000);
 		addKeyListener(this);
 	}
 	/*
@@ -131,10 +137,13 @@ public class SnakeModel extends JPanel implements KeyListener{
 		gameSound = new Music();
 		sleepTimer = 150;
 		isPause = false;
-		score = 0;
+		score = -1;
 		frame = parent.getFrames();
 		isFood = false;
 		setGameOver();
+		tutorialFrame.setVisible(true);
+		tutorialFrame.setAlwaysOnTop(true);
+		tutorialFrame.toFront();
 		startGame();
 	}
 	private void setGameInfos(int score) {
@@ -144,18 +153,20 @@ public class SnakeModel extends JPanel implements KeyListener{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		parentFrame.setTitle("Jetzt wird SnaPed"+ "\t Score: "+ score+"\t Level: "+ level);
 	}
 	/*
 	 * Zeichnet die Figuren dementsprechend ob etwas darauf liegt 
 	 */
 	private void doDrawing(Graphics g) {
-		
-		if(isPause) {
+		if(isPause || tutorialFrame.isVisible() || optionFrame.isVisible()) {
+			if(!optionFrame.isVisible()) {
+				repaint();
+			}
 			return;
 		}else {
+			ArrayList<SnakeObjekt> safetyCopy = snake.getList();
+			view.changetitel(score, level);
 			RenderingHints rh = new RenderingHints(RenderingHints.KEY_COLOR_RENDERING,RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-			
 			super.paintComponent(g);
 			try {
 				Thread.sleep(sleepTimer);
@@ -163,40 +174,50 @@ public class SnakeModel extends JPanel implements KeyListener{
 				e.printStackTrace();
 			}
 			Graphics2D g2d = (Graphics2D) g;
-			g2d.setRenderingHints(rh);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//			g2d.setRenderingHints(rh);
 			if(!isFood) {
 				food = new Food(getFoodKoord());
-				snakeList.add(snakeList.size()-1, new SnakeObjekt(
-							  new Dimension((int) snakeList.get(snakeList.size()-1).getPosition().getWidth(),
-									        (int) snakeList.get(snakeList.size()-1).getPosition().getHeight()), 
-							  getBodyImage()));
+				snake.newSnakeBody();
 				isFood = true;
 				setGameInfos(score++);
 			}
-			g2d.drawImage(food.getImage().getImage(), (int)food.getPosition().getHeight(),(int) food.getPosition().getWidth(), 50, 50, null);
-			for(int i =0 ; i < snakeList.size(); i++) {
-				int xSnake = (int)snakeList.get(i).getPosition().getHeight();
-				int ySnake = (int)snakeList.get(i).getPosition().getWidth();
+			g2d.drawImage(food.getImage().getImage(), 
+							(int)food.getPosition().getHeight(),
+							(int) food.getPosition().getWidth(), 50, 50, null);
+			
+			for(int i = 0; i < snake.getList().size();i++) {
+				int xSnake = (int) safetyCopy.get(i).getPosition().getHeight();
+				int ySnake = (int) safetyCopy.get(i).getPosition().getWidth();
 				if(i == 0) {
-					g2d.drawImage(snakeList.get(i).getIcon().getImage(), xSnake, ySnake, 50, 50, null);
-				}else if(i == snakeList.size()-1) {
-					g2d.drawImage(snakeList.get(i).getIcon().getImage(), xSnake, ySnake, 50, 50, null);
+					g2d.drawImage(safetyCopy.get(i).getIcon().getImage(), xSnake, ySnake, 50, 50, null);
+				}else if(i == safetyCopy.size()-1) {
+					g2d.drawImage(safetyCopy.get(i).getIcon().getImage(), xSnake, ySnake, 50, 50, null);
 				}else {
-					g2d.drawImage(snakeList.get(i).getIcon().getImage(), xSnake, ySnake, 50, 50, null);
+					g2d.drawImage(safetyCopy.get(i).getIcon().getImage(), xSnake, ySnake, 50, 50, null);
 				}
 			}
+			
+//			for(SnakeObjekt s: snakeList) {
+//				s = snakeList.get(i);
+//				int xSnake = (int)s.getPosition().getHeight();
+//				int ySnake = (int)s.getPosition().getWidth();
+//				
+//				i++;
+//			}
+			
+			isFood = kollisionDetection();	
+			if(isCrashed(safetyCopy)) {
+				//gehe aus Spiel heraus -> denn Game Over 
+				playGround.setVisible(false);
+				gameOver.setVisible(true);
+				return;
+			}else {
+				movingSnake(snake.getList(), task);
+				repaint();	
+			}
 		}		
-		isFood = kollisionDetection(snakeList,food);
-		ArrayList<SnakeObjekt> safetyCopy = snakeList;
-		if(isCrashed(safetyCopy)) {
-			//gehe aus Spiel heraus -> denn Game Over 
-			playGround.setVisible(false);
-			gameOver.setVisible(true);
-			return;
-		}else {
-			snakeList = movingSnake(snakeList, task);
-			repaint();	
-		}
+
 	}
 	/*
 	 * Ändert das Level und damit alle GameEigenschaften, welche damit zusammenhängen
@@ -205,6 +226,7 @@ public class SnakeModel extends JPanel implements KeyListener{
 			if(levelTreshHold[level] == score-1) {
 				gameSound.playLvlUp();
 				level++;
+				parentFrame.setTitle("testos");
 				gameSound.backgroundSound(level);
 				sleepTimer -=10;
 		}
@@ -223,7 +245,6 @@ public class SnakeModel extends JPanel implements KeyListener{
 				headDim.getHeight()<0||headDim.getWidth()<0 || 
 				headDim.getHeight()>playGround.getWidth()-50 || 
 				headDim.getWidth()>playGround.getHeight()-50) {
-				//Hier ist man nun GameOver -> Schließe spielPanel und Öffne GameOver Panel 
 				return true;
 			}
 		}
@@ -238,8 +259,9 @@ public class SnakeModel extends JPanel implements KeyListener{
 			isPause = true;
 		}else if(isPause) {
 			isPause = false;
+		}if(!optionFrame.isVisible()) {
+			repaint();
 		}
-		repaint();
 	}
 	/*
 	 * Hält die verschiedenen Soundtracks für die Geschwindigkeit 
@@ -256,6 +278,9 @@ public class SnakeModel extends JPanel implements KeyListener{
 	@Override
 	public void keyPressed(KeyEvent e) {
 		switch(e.getKeyCode()) {
+		case KeyEvent.VK_ESCAPE:
+			optionFrame.setVisible(true);
+				break;
 		case KeyEvent.VK_SPACE:
 			pause();
 			break;
@@ -286,34 +311,6 @@ public class SnakeModel extends JPanel implements KeyListener{
 		}
 	}
 	
-	 /*
-	  * @TODO: Auslagern nach Pictures -> Hat im Model nichts zu suchen da logik enthalten ist -> hier wird nur das Bild,
-	  * welches aus Pictures kommt dem jeweiligen Körperteil zugeordnet
-	  *  Gibt ein zufälliges Gif zurück 
-	  */
-	private ImageIcon getBodyImage() {
-		ImageIcon bodyPic;
-		Random rand = new Random();
-		int number = rand.nextInt(699)+1;
-		if(number <=100) {
-			bodyPic = (ImageIcon) getImageUrl("pepeAscii.gif");
-		}else if(number <=200) {
-			bodyPic =  (ImageIcon) getImageUrl("pepeDance.gif");
-		}else if(number <=300) {
-			bodyPic =  (ImageIcon) getImageUrl("pepejinny.gif");
-		}else if(number<=400) {
-			bodyPic = (ImageIcon) getImageUrl("pepeSadDance.gif");
-		}else if(number<=500) {
-			bodyPic = (ImageIcon) getImageUrl("pepeSweating.gif");
-		}else {
-			bodyPic = (ImageIcon) getImageUrl("happypepe.gif");
-		}
-		return bodyPic;
-	}
-	private Icon getImageUrl(String name) {
-		URL url = getClass().getClassLoader().getResource(name);
-		return  new ImageIcon(url);
-	}
 	/*
 	 * Gibt den Variablen startwerte 	
 	 */
@@ -324,13 +321,10 @@ public class SnakeModel extends JPanel implements KeyListener{
 		level = 0;
 		sleepTimer = 150;
 		setFocusable(true);
-		snakeList = new ArrayList<>();
-		snakeList.add(new SnakeObjekt(new Dimension(500, 500),(ImageIcon) getImageUrl("pepeTrippy.gif"))); 
-		snakeList.add(new SnakeObjekt(new Dimension(500+50, 500+50),(ImageIcon) getImageUrl("pickleRick.gif")));
 		task = "up";
 		isFood = false;
-//		musikStart();
-		repaint();
+		Graphics g = getGraphics();
+		paintComponent(g);
 	}
 	/*
 	 * Ist für die anfangsMusik zuständig
@@ -338,10 +332,9 @@ public class SnakeModel extends JPanel implements KeyListener{
 	/*
 	 * Gibt die Positionslisten an Logik weiter -> erhält neu berechnete Werte zurück
 	 */
-	private ArrayList<SnakeObjekt> movingSnake(ArrayList<SnakeObjekt> snakeKoords,String task){
+	private void movingSnake(ArrayList<SnakeObjekt> snakeKoords,String task){
 		SchlangenLogik brain = new SchlangenLogik(task);
-		ArrayList<SnakeObjekt> snakeKoordsNew = brain.changeKoord(snakeKoords);
-		return snakeKoordsNew;
+		snake.setList(brain.changeKoord(snakeKoords));
 	}
 	/*
 	 * Gibt einen Zuäflligen Punkt im Frame zurück (Koord)
@@ -360,7 +353,7 @@ public class SnakeModel extends JPanel implements KeyListener{
 	 */
 	private Dimension getFoodKoord() {
 		Dimension food =new Dimension(randomStartingPoint(playGround.getHeight()), randomStartingPoint(playGround.getWidth()));
-		for(SnakeObjekt snake: snakeList) {
+		for(SnakeObjekt snake: snake.getList()) {
 			if(snake.getPosition().equals(food)) {
 				return getFoodKoord();
 			}
@@ -370,10 +363,10 @@ public class SnakeModel extends JPanel implements KeyListener{
 	/*
 	 * Prüft ob eine Kollision mit food stattfindet
 	 */
-	private boolean kollisionDetection(ArrayList<SnakeObjekt> snake, Food food) {
+	private boolean kollisionDetection() {
 		SchlangenLogik bigBrain = new SchlangenLogik();
 		//gibt die koordinaten der schlange und vom food an die logik weiter 
-		if(bigBrain.eatDaApple(snake, food)) {
+		if(bigBrain.eatDaApple(snake.getHeadDim(), food.getPosition())) {
 			gameSound.playFoodEaten();
 			return false;
 		}

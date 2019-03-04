@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.ResourceBundle.Control;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -25,16 +27,21 @@ public class Music {
 	//GameSoundtrack
 	private ArrayList<Clip> soundTrack;
 	private URL[] urlOfAllTracks;
+	
 	private int counter; 
 	
+	//Holt sich alle benötigten URL´s
 	private void initMusic() {
 		this.lvlUp = getLvlUp();
 		this.eatDaFood = getFoodClip();
 		this.urlOfAllTracks = getSoundTrackURL();
 		this.soundTrack = getBackroundClip();
 	}
-	
+	//Setzt alle benötigten Clips bereit (für den BackroundSound)
 	private ArrayList<Clip> getBackroundClip() {
+		javax.sound.sampled.Control[] c = lvlUp.getControls();
+		
+		
 		soundTrack = new ArrayList<Clip>();
 		Clip clip = null;
 		AudioInputStream gameSound = null;
@@ -73,7 +80,7 @@ public class Music {
 		return soundTrack;
 		}
 		
-	
+	//Gibt URL Array von den verschiedenen Musikstücken zurück
 	private URL[] getSoundTrackURL() {
 		URL[] allTracks = 
 						   {this.getClass().getClassLoader().getResource("synthWaveLoop90bpm.wav"),
@@ -83,18 +90,24 @@ public class Music {
 							this.getClass().getClassLoader().getResource("GosT-NascencyLvl10.wav")};
 		return allTracks;
 	}
-
+	/*
+	 * spielt den lvlUp sound
+	 */
 	public void playLvlUp() {
 		this.lvlUp.start();
 		this.lvlUp = getLvlUp();
 	}
 	
-	
+	/*
+	 * Spielt den eatDaFood Sound 
+	 */
 	public void playFoodEaten() {
 		this.eatDaFood.start();
 		this.eatDaFood = getFoodClip();
 	}
-	
+	/*
+	 * Wechselt zwischen den Verschiedenen Backround Sounds 
+	 */
 	public void backgroundSound(int level) {
 		AudioInputStream audioIn = null;
 		if(level == 0 ||level == 2 || level == 5|| level == 8 || level == 10) {
@@ -129,7 +142,7 @@ public class Music {
 		}
 	}
 	
-
+	//Hierüber wird der eatDaFood-Clip geladen
 	private Clip getFoodClip() {
 		Clip clip= null;
 		URL lvlUpTrack = null;
@@ -151,7 +164,7 @@ public class Music {
 	}
 	
 	
-	
+	//Hierüber wird der LvlUp Clip geladen
 	private Clip getLvlUp() {
 		URL foodTrack = null;
 		foodTrack = this.getClass().getClassLoader().getResource("levelUp.wav");
@@ -175,49 +188,9 @@ public class Music {
 		}
 		return clip;
 	}
-	
-	public Clip getsoundTrack(int level){
-		URL gameSound = null;
-		if(level == 0) {
-			gameSound = this.getClass().getClassLoader().getResource("synthWaveLoop90bpm.wav"); 
-		}else if(level==2) {
-			gameSound = this.getClass().getClassLoader().getResource("synthWaveLoop3.wav"); 
-		}else if(level == 5) {
-			gameSound = this.getClass().getClassLoader().getResource("synthWaveLoop.wav"); 
-		}else if(level == 8) {
-			gameSound = this.getClass().getClassLoader().getResource("Polypumpkins - Abandoned Zone (feat. LC Destroyer).wav");
-		}else if(level == 10) {
-			gameSound = this.getClass().getClassLoader().getResource("GosT-NascencyLvl10.wav"); 
-		}
-		AudioInputStream gameAudioSound = null;
-		try {
-			gameAudioSound = AudioSystem.getAudioInputStream(gameSound);
-		} catch (UnsupportedAudioFileException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		Clip soundtrack = null;
-		try {
-			soundtrack = AudioSystem.getClip();
-		} catch (LineUnavailableException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		try {
-			soundtrack.open(gameAudioSound);
-		} catch (LineUnavailableException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return soundtrack;
-	}
-
+	/*
+	 * schließt alle Clips
+	 */
 	public void stopMusic() {
 		for(Clip c:soundTrack) {
 			c.stop();

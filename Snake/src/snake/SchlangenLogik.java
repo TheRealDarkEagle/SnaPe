@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class SchlangenLogik {
 	
+	
 	public SchlangenLogik(String task) {
 		this.task = task;
 	}
@@ -43,7 +44,7 @@ public class SchlangenLogik {
 	 * der rest übernimmt die position der vorherigen teile
 	 */
 	public ArrayList<SnakeObjekt> changeKoord(ArrayList<SnakeObjekt> snake) {
-
+		
 		ArrayList<SnakeObjekt> newSnakeKoords = new ArrayList<SnakeObjekt>();
 		int oldWidth=0;
 		int oldHeight=0;
@@ -79,8 +80,10 @@ public class SchlangenLogik {
 		return newSnakeKoords;
 	}
 	
-	public boolean eatDaApple(ArrayList<SnakeObjekt> snake, Food food) {
-		if((int)snake.get(0).getPosition().getHeight() == (int)food.getPosition().getHeight() && (int)snake.get(0).getPosition().getWidth() == (int)food.getPosition().getWidth()) {
+	public boolean eatDaApple(Dimension snakeHead, Dimension food) {
+		Dimension test = new Dimension(snakeHead);
+		if((int)test.getHeight() == (int)food.getHeight() && 
+		   (int)test.getWidth() == (int)food.getWidth()) {
 			return true;
 		}
 		return false;
@@ -88,7 +91,7 @@ public class SchlangenLogik {
 	
 	public boolean isCollision(ArrayList<SnakeObjekt> snake) {
 		ArrayList<SnakeObjekt> copyOfSnake = snake;
-		for(int i =1; i<copyOfSnake.size()-1;i++) {
+		for(int i =1; i<copyOfSnake.size();i++) {
 			Dimension snakeBody = copyOfSnake.get(i).getPosition();	
 			if((snake.get(0).getPosition().getWidth()==snakeBody.getWidth() && snake.get(0).getPosition().getHeight()==snakeBody.getHeight()) || 
 			   (snake.get(0).getPosition().getWidth()<=-1 || snake.get(0).getPosition().getWidth()>=1225) || 

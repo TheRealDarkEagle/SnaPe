@@ -3,10 +3,16 @@ package snake;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.io.File;
+import java.security.cert.PKIXRevocationChecker.Option;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
 import javax.swing.GroupLayout.Alignment;
 
 /*
@@ -18,19 +24,24 @@ import javax.swing.GroupLayout.Alignment;
  */
 public class SnakeView extends JFrame{
 	
+	
+	
 	public SnakeView() {
+		getMiddleXOfScreens();
 		initUI();
 	}
 	
-	
+	private JFrame gameFrame;
+	private int height;
+	private int width;
 	private static final long serialVersionUID = 1L;
 	
 	
 	private void initUI() {
+		OptionMenu option = new OptionMenu();
+		JFrame optionMenu = option.getOptionMenu();
 		Dimension buttonDim = new Dimension(100, 30);
 		setTitle("Jetzt wird SnaPed");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLocation(2800, 300);
 //		setLocation(getMiddleXOfScreens(), y);
 		setTitle("Main Menu");
 		setSize(145, 245);
@@ -40,22 +51,34 @@ public class SnakeView extends JFrame{
 		startBtn.setMinimumSize(buttonDim);
 		startBtn.setMaximumSize(buttonDim);
 		startBtn.addActionListener((e)->{
+			
+			//Optionen Txt Datei erstellen 
+			if(new File("C:\\user\\SnakeOptn.txt")==null) {
+				
+			}
+			
+			//Wenn datei noch nicht existiert mit standart optionen einstellungen speichern 
+			
+			
 			SnakeModel playGround = new SnakeModel(this);
 			setVisible(false);
-			JFrame gameFrame = new JFrame("Jetzt wird SnaPed");
-			playGround.setSize(1500, 1025);
+			gameFrame = new JFrame("Jetzt wird SnaPed");
 			gameFrame.add(playGround);
-			gameFrame.setSize(1500, 1025);
+			gameFrame.setSize(1515, 1040);
+			gameFrame.setVisible(false);
+			gameFrame.setDefaultCloseOperation(gameFrame.EXIT_ON_CLOSE);
+			
 			gameFrame.setVisible(true);
-			gameFrame.setDefaultCloseOperation(EXIT_ON_CLOSE);
+//			
+			pack();
 		});
 		//Öffnet die Optionen
-//		JButton OptionBtn = new JButton("Options");
-//		OptionBtn.setMinimumSize(buttonDim);
-//		OptionBtn.setMaximumSize(buttonDim);
-//		OptionBtn.addActionListener((e)->{
-//			setTitle("Option Menu");
-//		});
+		JButton OptionBtn = new JButton("Options");
+		OptionBtn.setMinimumSize(buttonDim);
+		OptionBtn.setMaximumSize(buttonDim);
+		OptionBtn.addActionListener((e)->{
+			optionMenu.setVisible(true);
+		});
 		//Öffnet die Credits
 //		JButton credBtn = new JButton("Credits");
 //		credBtn.setMinimumSize(buttonDim);
@@ -85,7 +108,7 @@ public class SnakeView extends JFrame{
 		gl.setHorizontalGroup(gl.createParallelGroup(Alignment.CENTER)
 				.addComponent(startBtn)
 				.addGap(10)
-//				.addComponent(OptionBtn)
+				.addComponent(OptionBtn)
 //				.addGap(10)
 //				.addComponent(credBtn)
 //				.addGap(10)
@@ -93,7 +116,7 @@ public class SnakeView extends JFrame{
 				.addComponent(closeBtn));
 		gl.setVerticalGroup(gl.createSequentialGroup()
 				.addComponent(startBtn)
-//				.addComponent(OptionBtn)
+				.addComponent(OptionBtn)
 //				.addComponent(credBtn)
 //				.addComponent(scoreBtn)
 				.addComponent(closeBtn));
@@ -108,15 +131,14 @@ public class SnakeView extends JFrame{
 	/*
 	 * Hier wird die Width aller bildschirme berechent
 	 */
-//	private int getMiddleXOfScreens() {
-//		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//		GraphicsDevice[] devices = ge.getScreenDevices();
-//		int width;
-//		for(GraphicsDevice d:devices) {
-//			d.
-//		}
-//		return 0;
-//	}
+	private void getMiddleXOfScreens() {
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] devices = ge.getScreenDevices();
+		for(int i = 0; i < devices.length;i++) {
+			width = devices[i].getDisplayMode().getWidth();
+			height += devices[i].getDisplayMode().getHeight();
+		}
+	}
 
 
 	public static void main(String[] args) {
@@ -126,8 +148,9 @@ public class SnakeView extends JFrame{
 		});
 	}
  
-
-	
+	public void changetitel(int Score, int level) {
+		gameFrame.setTitle("Jetzt wird SnaPed" + "      \t Punkte: "+Score+"       \t Level: "+ level);
+	}
 	
 	
 
